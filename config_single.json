@@ -1,0 +1,27 @@
+{
+    "user_name" : "@gmail.com",
+    "password" : "@8172",
+    "EMAIL_RECEIVER": "@gmail.com",
+    "EMAIL_SENDER": "lam.@gmail.com",
+    "EMAIL_PASSWORD": "eptu gweq lygv ufwc",
+    "PATH_CHECK_SUBMIT" : "KQ_DEU_add_model38_MARKET_18_08_26_reefresh.csv",
+    "OUTPUT_CSV": "KQ_DEU_add_model38_MARKET_18_08_26_reefresh.csv",
+    "RETRY_INTERVAL": 900,
+    "NEXT_CYCLE_DELAY": 14400,
+    "TIME_API": 240,
+    "default_settings": {
+        "instrumentType": "EQUITY",
+        "region": "DEU",
+        "universe": "TOP500",
+        "delay": 1,
+        "decay": 7,
+        "neutralization": "MARKET",
+        "truncation": 0.126,
+        "pasteurization": "ON",
+        "testPeriod": "P0Y0M0D",
+        "unitHandling": "VERIFY",
+        "nanHandling": "OFF",
+        "language": "FASTEXPR",
+        "visualization": false
+    }
+}
