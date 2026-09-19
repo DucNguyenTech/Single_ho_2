@@ -47,7 +47,7 @@ variables = ['star_val_dividend_projection_fy1', 'region_rank_price_to_intrinsic
 import os
 
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
-alpha_single = os.path.join(CURRENT_DIR, "alpha_single_Te.txt")
+alpha_single = os.path.join(CURRENT_DIR, "alpha_single.txt")
 alpha_pass_single = os.path.join(CURRENT_DIR, "alpha_pass_single.txt")
 alpha_false_single = os.path.join(CURRENT_DIR, "alpha_false_single.txt")
 
