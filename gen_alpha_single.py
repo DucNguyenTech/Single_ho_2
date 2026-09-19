@@ -47,7 +47,7 @@ variables = ['star_val_dividend_projection_fy1', 'region_rank_price_to_intrinsic
 import os
 
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
-alpha_single = os.path.join(CURRENT_DIR, "alpha_single.txt")
+alpha_single = os.path.join(CURRENT_DIR, "alpha_single_Te.txt")
 alpha_pass_single = os.path.join(CURRENT_DIR, "alpha_pass_single.txt")
 alpha_false_single = os.path.join(CURRENT_DIR, "alpha_false_single.txt")
 
@@ -60,15 +60,18 @@ for clear_file in [alpha_single, alpha_pass_single, alpha_false_single]:
         print(f"[WARN] Không tìm thấy file để xóa nội dung: {clear_file}")
 
 print("\nHoàn thành!")
-
 import random
 import re
 
-operators_one_var_ts = [
-    # "inst_pnl({})",
+# Chuyển từ operator gốc sang cấu trúc generator mới; không dùng operators_one_var_ts
+DAYS=[20,40,60,90,120,252]
+DAY_WEIGHTS=[10,20,15,20,20,15]
+GROUPS=["subindustry","industry","sector","market"]
+
+operators_one_var_base=[
     'abs({})',
     'days_from_last_change({})',
-    'group_backfill({}, group, 116, std = 4.0)',
+    'group_backfill({}, group, D, std = 4.0)',
     'group_extra({}, weight, group)',
     'group_mean({}, weight, group)',
     'group_neutralize({}, group)',
@@ -77,8 +80,8 @@ operators_one_var_ts = [
     'group_zscore({}, group)',
     'hump({}, hump = 0.01)',
     'inverse({})',
-    'kth_element({}, 116, k=1)',
-    'last_diff_value({}, 116)',
+    'kth_element({}, D, k=1)',
+    'last_diff_value({}, D)',
     'log({})',
     'normalize({}, useStd = false, limit = 0.0)',
     'quantile({}, driver = gaussian, sigma = 1.0)',
@@ -88,96 +91,52 @@ operators_one_var_ts = [
     'sign({})',
     'sqrt({})',
     'tanh({})',
-    'ts_arg_max({}, 116)',
-    'ts_arg_min({}, 116)',
-    'ts_av_diff({}, 116)',
-    'ts_backfill({}, 116)',
-    'ts_count_nans({} ,116)',
-    'ts_decay_linear({}, 116, dense = false)',
-    'ts_delay({}, 116)',
-    'ts_delta({}, 116)',
-    'ts_entropy({},116)',
-    'ts_mean({}, 116)',
-    'ts_min_diff({}, 116)',
-    'ts_min_max_cps({}, 116, f = 2)',
-    'ts_min_max_diff({}, 116, f = 0.5)',
-    'ts_product({}, 116)',
-    'ts_quantile({},116, driver="gaussian")',
-    'ts_rank({}, 116, constant = 0)',
-    'ts_scale({}, 116, constant = 0)',
-    'ts_skewness({}, 116)',
-    'ts_std_dev({}, 116)',
-    'ts_sum({}, 116)',
+    'ts_arg_max({}, D)',
+    'ts_arg_min({}, D)',
+    'ts_av_diff({}, D)',
+    'ts_backfill({}, D)',
+    'ts_count_nans({} ,D)',
+    'ts_decay_linear({}, D, dense = false)',
+    'ts_delay({}, D)',
+    'ts_delta({}, D)',
+    'ts_entropy({},D)',
+    'ts_mean({}, D)',
+    'ts_min_diff({}, D)',
+    'ts_min_max_cps({}, D, f = 2)',
+    'ts_min_max_diff({}, D, f = 0.5)',
+    'ts_product({}, D)',
+    'ts_quantile({},D, driver=',
+    'ts_rank({}, D, constant = 0)',
+    'ts_scale({}, D, constant = 0)',
+    'ts_skewness({}, D)',
+    'ts_std_dev({}, D)',
+    'ts_sum({}, D)',
     'ts_target_tvr_decay({}, lambda_min=0, lambda_max=1, target_tvr=0.1)',
-    'ts_zscore({}, 116)',
+    'ts_zscore({}, D)',
     'winsorize({}, std=4)',
-    'zscore({})',
-    'add({}, {}, filter = false)',
-    'divide({}, {})',
-    'max({}, {})',
-    'min({}, {})',
-    'multiply({} ,{},filter=false)',
-    'power({}, {})',
-    'regression_proj({}, {})',
-    'signed_power({}, {})',
-    'subtract({}, {}, filter=false)',
-    'ts_corr({}, {}, 116)',
-    'ts_covariance({}, {}, 116)',
-    'ts_regression({}, {}, 116, lag = 0, rettype = 0)',
-    'vector_proj({}, {})',
+    'zscore({})'
 ]
 
-operators_one_var = [
-    # "inst_pnl({})",
-    'abs({})',
-    'days_from_last_change({})',
-    'group_backfill({}, group, 116, std = 4.0)',
-    'group_extra({}, weight, group)',
-    'group_mean({}, weight, group)',
+operators_one_var_priority=[
     'group_neutralize({}, group)',
     'group_rank({}, group)',
-    'group_scale({}, group)',
     'group_zscore({}, group)',
-    'hump({}, hump = 0.01)',
-    'inverse({})',
-    'kth_element({}, 116, k=1)',
-    'last_diff_value({}, 116)',
-    'log({})',
     'normalize({}, useStd = false, limit = 0.0)',
-    'quantile({}, driver = gaussian, sigma = 1.0)',
-    'reverse({})',
-    'scale({}, scale=1, longscale=1, shortscale=1)',
-    'sigmoid({})',
-    'sign({})',
-    'sqrt({})',
-    'tanh({})',
-    'ts_arg_max({}, 116)',
-    'ts_arg_min({}, 116)',
-    'ts_av_diff({}, 116)',
-    'ts_backfill({}, 116)',
-    'ts_count_nans({} ,116)',
-    'ts_decay_linear({}, 116, dense = false)',
-    'ts_delay({}, 116)',
-    'ts_delta({}, 116)',
-    'ts_entropy({},116)',
-    'ts_mean({}, 116)',
-    'ts_min_diff({}, 116)',
-    'ts_min_max_cps({}, 116, f = 2)',
-    'ts_min_max_diff({}, 116, f = 0.5)',
-    'ts_product({}, 116)',
-    'ts_quantile({},116, driver="gaussian")',
-    'ts_rank({}, 116, constant = 0)',
-    'ts_scale({}, 116, constant = 0)',
-    'ts_skewness({}, 116)',
-    'ts_std_dev({}, 116)',
-    'ts_sum({}, 116)',
-    'ts_target_tvr_decay({}, lambda_min=0, lambda_max=1, target_tvr=0.1)',
-    'ts_zscore({}, 116)',
+    'ts_backfill({}, D)',
+    'ts_decay_linear({}, D, dense = false)',
+    'ts_delay({}, D)',
+    'ts_delta({}, D)',
+    'ts_mean({}, D)',
+    'ts_rank({}, D, constant = 0)',
+    'ts_std_dev({}, D)',
+    'ts_zscore({}, D)',
     'winsorize({}, std=4)',
-    'zscore({})',
+    'zscore({})','ts_count_nans({}, D)','days_from_last_change({})'
 ]
 
-operators_two_var = [
+operators_one_var=operators_one_var_base+operators_one_var_priority*2
+
+operators_two_var=[
     'add({}, {}, filter = false)',
     'divide({}, {})',
     'max({}, {})',
@@ -187,176 +146,102 @@ operators_two_var = [
     'regression_proj({}, {})',
     'signed_power({}, {})',
     'subtract({}, {}, filter=false)',
-    'ts_corr({}, {}, 116)',
-    'ts_covariance({}, {}, 116)',
-    'ts_regression({}, {}, 116, lag = 0, rettype = 0)',
-    'vector_proj({}, {})',
+    'ts_corr({}, {}, D)',
+    'ts_covariance({}, {}, D)',
+    'ts_regression({}, {}, D, lag = 0, rettype = 0)',
+    'vector_proj({}, {})'
 ]
 
-operators_three_var = [
-    'trade_when({}, {}, {})',
+operators_three_var=[
+    'trade_when({}, {}, {})'
 ]
 
-# operators_four_var = [
-#     "trade_when({},{},{},{})", 
-# ]
+math_operators=["*","/","^","+","-"]
 
-# Toán tử số học có thể áp dụng ở một lớp duy nhất
-math_operators = ["*", "/", "^","+","-"]  # Cộng, trừ, nhân, chia, mũ
-RANDOM_one = 0.8
-RANDOM_two = 0.96
-RANDOM_math = 0.2
+P_ONE=0.80
+P_TWO=0.18
+P_THREE=0.02
+P_MATH=0.20
+P_FINAL_RANK=1.00
 
-import time
-# Hàm tạo công thức với số hàm lồng nhau cố định
-def generate_nested_formula(variable, depth, apply_math_layer):
-    """Tạo công thức với số hàm lồng nhau cố định và chỉ 1 lớp có phép toán"""
-    formula_stack = [variable]  
+def choose_day():
+    return random.choices(DAYS,weights=DAY_WEIGHTS,k=1)[0]
 
+def fill_params(template):
+    if re.search(r"\bD\b",template):
+        template=re.sub(r"\bD\b",str(choose_day()),template)
+    if re.search(r"\bweight\b",template):
+        template=re.sub(r"\bweight\b",str(random.choice([round(i*0.1,1) for i in range(1,10)])),template)
+    if re.search(r"\bgroup\b",template):
+        template=re.sub(r"\bgroup\b",random.choice(GROUPS),template)
+    return template
+
+def other_variable(variable):
+    pool=[x for x in variables if x!=variable]
+    return random.choice(pool) if pool else variable
+
+def unary(expr):
+    return fill_params(random.choice(operators_one_var).format(expr))
+
+def second_branch(variable,source=None):
+    v=other_variable(variable)
+    expr=v if random.random()<0.35 else unary(v)
+    if source is not None and expr==source:
+        expr=unary(v)
+    return expr
+
+def binary(left,right):
+    return fill_params(random.choice(operators_two_var).format(left,right))
+
+def generate_nested_formula(variable,depth,apply_math_layer):
+    formula_stack=[variable]
     for i in range(depth):
-        if i == 0:
+        current=formula_stack[-1]
+        r=random.random()
+        if r<P_ONE:
+            new_formula=unary(current)
+        elif r<P_ONE+P_TWO:
+            new_formula=binary(current,second_branch(variable,current))
+        else:
+            trigger=second_branch(variable,current)
+            exit_expr=second_branch(variable,current)
+            new_formula=fill_params(random.choice(operators_three_var).format(trigger,current,exit_expr))
+        formula_stack.append(new_formula)
+        if i==apply_math_layer:
+            right=second_branch(variable,formula_stack[-1])
+            formula_stack[-1]=f"({formula_stack[-1]}){random.choice(math_operators)}({right})"
+    return formula_stack[-1]
 
-            alpha_template = random.choice(operators_one_var_ts)
-
-            # Đếm số placeholder {} trong template
-            num_placeholders = alpha_template.count("{}")
-
-            # Lấy ngẫu nhiên số biến phù hợp từ variables
-            if num_placeholders == 1:
-                args = (random.choice(variables),)
-            elif num_placeholders == 2:
-                args = tuple(random.sample(variables, 2))  # 2 biến khác nhau
-            else:
-                args = tuple(random.choices(variables, k=num_placeholders))  # nhiều hơn 2
-
-            # Áp dụng format
-            alpha_0 = alpha_template.format(*args)
-
-            # Thêm alpha mới vào stack
-            formula_stack.append(alpha_0)
-
-        elif i == 1:
-            if random.random() < RANDOM_one:  # 50% chọn hàm 1 biến, 50% chọn hàm 2 biến
-                alpha_1 = random.choice(operators_one_var).format(formula_stack[-1])
-                formula_stack.append(alpha_1)
-            elif random.random() < RANDOM_two:
-                # f2 = random.choice(operators_one_var).format(variable)  # Tạo một hàm khác với biến gốc
-                alpha_1 = random.choice(operators_two_var).format(formula_stack[-1], formula_stack[-1])
-                formula_stack.append(alpha_1)
-            else:
-                # if random.random() < 0.7:
-                f1 = random.choice(operators_one_var).format(variable)  # Tạo một hàm khác với biến gốc
-                alpha_1 = random.choice(operators_three_var).format(formula_stack[-1], formula_stack[-1],f1)
-                formula_stack.append(alpha_1)
-                # else:
-                #     f1 = random.choice(operators_one_var).format(variable)  # Tạo một hàm khác với biến gốc
-                #     f1_1 = random.choice(operators_one_var).format(variable)  # Tạo một hàm khác với biến gốc
-                #     alpha_1 = random.choice(operators_four_var).format(formula_stack[-1], formula_stack[-1], f1, f1_1)
-                #     formula_stack.append(alpha_1)
-        elif i == 2:
-            if random.random() < RANDOM_one:  # 50% chọn hàm 1 biến, 50% chọn hàm 2 biến
-                alpha_2 = random.choice(operators_one_var).format(formula_stack[-1])
-                formula_stack.append(alpha_2)
-            elif random.random() < RANDOM_two:
-                f2 = random.choice(operators_one_var).format(formula_stack[-2])  # Tạo một hàm khác với biến gốc
-                alpha_2 = random.choice(operators_two_var).format(formula_stack[-1], f2)
-                formula_stack.append(alpha_2)
-            else:
-                # if random.random() < 0.7:
-                f2 = random.choice(operators_one_var).format(formula_stack[-2])
-                alpha_2 = random.choice(operators_three_var).format(formula_stack[-1], formula_stack[-1], f2)
-                formula_stack.append(alpha_2)
-                # else:
-                #     f2 = random.choice(operators_one_var).format(formula_stack[-2])  # Tạo một hàm khác với biến gốc
-                #     f2_2 = random.choice(operators_one_var).format(formula_stack[-2])  # Tạo một hàm khác với biến gốc
-                #     alpha_2 = random.choice(operators_four_var).format(formula_stack[-1], formula_stack[-1], f2, f2_2)
-                #     formula_stack.append(alpha_2)
-        elif i == 3:
-            if random.random() < RANDOM_one:  # 50% chọn hàm 1 biến, 50% chọn hàm 2 biến
-                alpha_3 = random.choice(operators_one_var).format(formula_stack[-1])
-                formula_stack.append(alpha_3)
-            else:
-                alpha_3 = random.choice(operators_two_var).format(formula_stack[-1], formula_stack[-1])
-                formula_stack.append(alpha_3)
-
-        if i == apply_math_layer:
-            if i == 0 :
-                math_op = random.choice(math_operators)
-                formula_stack.append(f"{alpha_0}{math_op}{alpha_0}")
-                # print("formula_stack : ", formula_stack)
-            else:
-                math_op = random.choice(math_operators)
-                f2 = random.choice(operators_one_var).format(formula_stack[-2])  # Tạo một hàm khác với biến gốc
-                formula_stack.append(f"{formula_stack[-1]}{math_op}{f2}")
-
-    return formula_stack[-1]  
-
-# # Số công thức cần tạo
-# LIMIT = 11600  
-
-# # Số hàm lồng nhau cố định
-# NESTED_DEPTH = 4
-
-configs = [
-    {"NESTED_DEPTH": 4, "LIMIT": 45000},
-    {"NESTED_DEPTH": 3, "LIMIT": 35000},
-    {"NESTED_DEPTH": 2, "LIMIT": 20000},
+configs=[
+    {"NESTED_DEPTH":2,"LIMIT":30000},
+    {"NESTED_DEPTH":3,"LIMIT":45000},
+    {"NESTED_DEPTH":4,"LIMIT":25000},
 ]
 
+all_formulas=set()
 for cfg in configs:
-    NESTED_DEPTH = cfg["NESTED_DEPTH"]
-    LIMIT = cfg["LIMIT"]
+    NESTED_DEPTH=cfg["NESTED_DEPTH"]
+    LIMIT=cfg["LIMIT"]
+    formulas=set()
+    attempts=0
+    max_attempts=LIMIT*20
+    while len(formulas)<LIMIT and attempts<max_attempts:
+        attempts+=1
+        var=random.choice(variables)
+        math_layer=random.randrange(NESTED_DEPTH) if random.random()<P_MATH else None
+        formula=generate_nested_formula(var,NESTED_DEPTH,math_layer)
+        if random.random()<P_FINAL_RANK:
+            formula=f"rank({formula})"
+        if formula not in all_formulas:
+            formulas.add(formula)
+            all_formulas.add(formula)
+    with open(alpha_single,"a",encoding="utf-8") as f:
+        f.write("\n".join(formulas)+("\n" if formulas else ""))
+    print(f"✅ Depth {NESTED_DEPTH}: đã tạo {len(formulas):,}/{LIMIT:,} công thức unique.")
 
-    # Tạo danh sách công thức
-    formulas = []
-    while len(formulas) < LIMIT:
-        var = random.choice(variables)  # Chọn biến ngẫu nhiên
-        NESTED_DEPTH_math = 2
-        math_layer = random.choice(range(NESTED_DEPTH_math)) if random.random() < RANDOM_math else None  # 80% có phép toán, 20% không có
-
-        formula = generate_nested_formula(var, NESTED_DEPTH, math_layer)
-
-        if "weight" in formula:
-            weight_val = random.choice([round(x, 1) for x in [i * 0.1 for i in range(1, 10)]])
-            formula = formula.replace("weight", str(weight_val))
-
-        if "group" in formula:
-            group_options = ["subindustry", "industry", "sector", "market"]
-            group_val = random.choice(group_options)
-            # chỉ thay group nguyên, không thay group_
-            formula = re.sub(r"\bgroup\b", group_val, formula)
-
-        formula = f"rank({formula})"
-
-        formulas.append(formula)
-
-    # Lưu vào file
-    with open(alpha_single, "a") as f:
-        for formula in formulas:
-            f.write(formula + "\n")
-
-    print(f"✅ Đã tạo {len(formulas)} công thức với {NESTED_DEPTH} hàm lồng nhau và chỉ 1 lớp phép toán ngoài cùng (hoặc không có).")
-
-
-import random
-
-for i in range(1, 11):
-    with open(alpha_single, "r") as f:
-        alpha_list = [line.strip() for line in f.readlines()]
-
-    # Tráo đổi vị trí các alpha trong từng công thức
-    for i in range(len(alpha_list)):
-        parts = alpha_list[i].split(" + ")
-        random.shuffle(parts)  # Tráo thứ tự alpha trong công thức
-        alpha_list[i] = " + ".join(parts)
-
-    # Tráo đổi thứ tự các công thức
-    random.shuffle(alpha_list)
-
-    # Ghi đè lại file với danh sách đã được tráo thứ tự
-    with open(alpha_single, "w") as f:
-        for alpha in alpha_list:
-            f.write(alpha + "\n")
-
-    print("✅ Đã tráo đổi vị trí alpha trong từng công thức và thứ tự công thức thành công!")
-
+with open(alpha_single,"r",encoding="utf-8") as f:
+    alpha_list=[line.strip() for line in f if line.strip()]
+random.shuffle(alpha_list)
+with open(alpha_single,"w",encoding="utf-8") as f:
+    f.write("\n".join(alpha_list)+("\n" if alpha_list else ""))
+print(f"✅ Tổng {len(alpha_list):,} công thức unique; đã random thứ tự thành công!")
